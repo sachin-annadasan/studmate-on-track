@@ -2,95 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Android-style Student Attendance Management System Design System */
 
 @layer base {
   :root {
+    /* Android-style Blue & White Theme */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 215 25% 27%;
+    
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 215 25% 27%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
+    --popover-foreground: 215 25% 27%;
+    
+    /* Primary Blue - Android Material Blue */
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 210 100% 85%;
+    --primary-dark: 210 100% 35%;
+    
+    /* Secondary - Light Blue Accent */
+    --secondary: 200 100% 95%;
+    --secondary-foreground: 210 100% 35%;
+    
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    
+    --accent: 200 100% 90%;
+    --accent-foreground: 210 100% 35%;
+    
+    /* Status Colors for Attendance */
+    --success: 120 60% 50%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 100% 50%;
+    --warning-foreground: 0 0% 0%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 210 40% 90%;
+    --input: 210 40% 94%;
+    --ring: 210 100% 50%;
+    --radius: 0.75rem;
+    
+    /* Mobile-specific Android patterns */
+    --elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --elevation-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    --elevation-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    
+    /* Android status colors */
+    --present: 120 60% 50%;
+    --absent: 0 70% 50%;
+    --on-duty: 45 100% 50%;
+    
+    /* Mobile navigation */
+    --bottom-nav-height: 60px;
+    --header-height: 56px;
+    
+    /* Sidebar (for desktop fallback) */
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-
+  
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -101,5 +100,74 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  /* Android Material Design styles */
+  .android-elevation-1 {
+    box-shadow: var(--elevation-1);
+  }
+  
+  .android-elevation-2 {
+    box-shadow: var(--elevation-2);
+  }
+  
+  .android-elevation-3 {
+    box-shadow: var(--elevation-3);
+  }
+  
+  .status-present {
+    background-color: hsl(var(--present));
+    color: hsl(var(--success-foreground));
+  }
+  
+  .status-absent {
+    background-color: hsl(var(--absent));
+    color: hsl(var(--destructive-foreground));
+  }
+  
+  .status-on-duty {
+    background-color: hsl(var(--on-duty));
+    color: hsl(var(--warning-foreground));
+  }
+  
+  /* Mobile-first responsive design */
+  .mobile-container {
+    padding-bottom: var(--bottom-nav-height);
+    min-height: 100vh;
+  }
+  
+  .mobile-header {
+    height: var(--header-height);
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-dark)));
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  .mobile-scroll {
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  /* Android-style floating action button */
+  .fab {
+    @apply fixed bottom-20 right-4 z-50 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg;
+    @apply flex items-center justify-center;
+    box-shadow: var(--elevation-2);
+  }
+  
+  .fab:active {
+    box-shadow: var(--elevation-3);
+  }
+  
+  /* Android card style */
+  .android-card {
+    @apply bg-card rounded-lg p-4 border-0;
+    box-shadow: var(--elevation-1);
+  }
+  
+  /* Status badges */
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-sm font-medium;
   }
 }
