@@ -21,14 +21,23 @@ const years: Year[] = ['1st Year', '2nd Year', '3rd Year'];
 const sections: Section[] = ['A', 'B', 'C'];
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 
-// Generate 60 students
-export const mockStudents: Student[] = Array.from({ length: 60 }, (_, index) => ({
-  id: `S${(index + 1).toString().padStart(3, '0')}`,
-  name: indianNames[index],
-  department: departments[Math.floor(Math.random() * departments.length)],
-  year: years[Math.floor(Math.random() * years.length)],
-  section: sections[Math.floor(Math.random() * sections.length)]
-}));
+// Generate 60 students with subject enrollments
+export const mockStudents: Student[] = Array.from({ length: 60 }, (_, index) => {
+  const department = departments[Math.floor(Math.random() * departments.length)];
+  const year = years[Math.floor(Math.random() * years.length)];
+  const section = sections[Math.floor(Math.random() * sections.length)];
+  
+  return {
+    id: `S${(index + 1).toString().padStart(3, '0')}`,
+    name: indianNames[index],
+    department,
+    year,
+    section,
+    enrolledSubjects: mockSubjects
+      .filter(subject => subject.department === department)
+      .map(subject => subject.id)
+  };
+});
 
 // Preload subjects
 export const mockSubjects: Subject[] = [
@@ -40,25 +49,28 @@ export const mockSubjects: Subject[] = [
   { id: 'SUB006', name: 'Structural Analysis', department: 'CIVIL', totalSessions: 0 }
 ];
 
-// Generate monthly attendance records for all students
+// Generate monthly attendance records for all students per subject
 export const generateMonthlyAttendance = (): AttendanceRecord[] => {
   const records: AttendanceRecord[] = [];
   
   mockStudents.forEach(student => {
-    months.forEach(month => {
-      const totalClasses = Math.floor(Math.random() * 8) + 18; // 18-25 classes
-      const classesAttended = Math.floor(Math.random() * (totalClasses - Math.floor(totalClasses / 2))) + Math.floor(totalClasses / 2);
-      const percentage = Math.round((classesAttended / totalClasses) * 100);
-      
-      records.push({
-        id: `ATT_${student.id}_${month}`,
-        studentId: student.id,
-        date: new Date(2024, months.indexOf(month), 15),
-        status: percentage >= 75 ? 'Present' : percentage >= 50 ? 'On Duty' : 'Absent',
-        month,
-        totalClasses,
-        classesAttended,
-        percentage
+    student.enrolledSubjects.forEach(subjectId => {
+      months.forEach(month => {
+        const totalClasses = Math.floor(Math.random() * 8) + 18; // 18-25 classes
+        const classesAttended = Math.floor(Math.random() * (totalClasses - Math.floor(totalClasses / 2))) + Math.floor(totalClasses / 2);
+        const percentage = Math.round((classesAttended / totalClasses) * 100);
+        
+        records.push({
+          id: `ATT_${student.id}_${subjectId}_${month}`,
+          studentId: student.id,
+          subjectId,
+          date: new Date(2024, months.indexOf(month), 15),
+          status: percentage >= 75 ? 'Present' : percentage >= 50 ? 'On Duty' : 'Absent',
+          month,
+          totalClasses,
+          classesAttended,
+          percentage
+        });
       });
     });
   });
@@ -66,26 +78,29 @@ export const generateMonthlyAttendance = (): AttendanceRecord[] => {
   return records;
 };
 
-// Generate IAT attendance records
+// Generate IAT attendance records per subject
 export const generateIATAttendance = (): AttendanceRecord[] => {
   const records: AttendanceRecord[] = [];
   const iatTypes: IATType[] = ['IAT 1', 'IAT 2'];
   
   mockStudents.forEach(student => {
-    iatTypes.forEach(iatType => {
-      const totalClasses = Math.floor(Math.random() * 5) + 8; // 8-12 classes for IAT
-      const classesAttended = Math.floor(Math.random() * (totalClasses - 2)) + 2;
-      const percentage = Math.round((classesAttended / totalClasses) * 100);
-      
-      records.push({
-        id: `IAT_${student.id}_${iatType.replace(' ', '')}`,
-        studentId: student.id,
-        date: new Date(2024, iatType === 'IAT 1' ? 2 : 3, 15),
-        status: percentage >= 75 ? 'Present' : percentage >= 50 ? 'On Duty' : 'Absent',
-        iatType,
-        totalClasses,
-        classesAttended,
-        percentage
+    student.enrolledSubjects.forEach(subjectId => {
+      iatTypes.forEach(iatType => {
+        const totalClasses = Math.floor(Math.random() * 5) + 8; // 8-12 classes for IAT
+        const classesAttended = Math.floor(Math.random() * (totalClasses - 2)) + 2;
+        const percentage = Math.round((classesAttended / totalClasses) * 100);
+        
+        records.push({
+          id: `IAT_${student.id}_${subjectId}_${iatType.replace(' ', '')}`,
+          studentId: student.id,
+          subjectId,
+          date: new Date(2024, iatType === 'IAT 1' ? 2 : 3, 15),
+          status: percentage >= 75 ? 'Present' : percentage >= 50 ? 'On Duty' : 'Absent',
+          iatType,
+          totalClasses,
+          classesAttended,
+          percentage
+        });
       });
     });
   });

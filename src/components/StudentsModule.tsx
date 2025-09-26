@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Badge } from './ui/badge';
 import { Search, Filter, Plus, Edit, Trash2, Eye } from 'lucide-react';
-import { mockStudents } from '../data/mockData';
+import { mockStudents, mockSubjects } from '../data/mockData';
 import { Student, Department, Year, Section } from '../types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -52,7 +52,10 @@ export const StudentsModule = () => {
       name: studentName.trim(),
       department: studentDepartment,
       year: studentYear,
-      section: studentSection
+      section: studentSection,
+      enrolledSubjects: mockSubjects
+        .filter(subject => subject.department === studentDepartment)
+        .map(subject => subject.id)
     };
 
     setStudents([...students, newStudent]);

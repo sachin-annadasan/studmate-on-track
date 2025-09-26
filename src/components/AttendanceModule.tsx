@@ -5,12 +5,12 @@ import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Calendar as CalendarIcon, Users, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, Clock, CheckCircle, XCircle, AlertCircle, BookOpen } from 'lucide-react';
 import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Checkbox } from './ui/checkbox';
-import { mockMonthlyAttendance, mockIATAttendance, mockStudents, mockIATRecords } from '../data/mockData';
-import { AttendanceRecord, AttendanceStatus, Department, IATType, Student } from '../types';
+import { mockMonthlyAttendance, mockIATAttendance, mockStudents, mockIATRecords, mockSubjects } from '../data/mockData';
+import { AttendanceRecord, AttendanceStatus, Department, IATType, Student, Session } from '../types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -19,19 +19,34 @@ export const AttendanceModule = () => {
   const { toast } = useToast();
   const [selectedMonth, setSelectedMonth] = useState('Jan');
   const [selectedIAT, setSelectedIAT] = useState('IAT 1');
+  const [selectedSubject, setSelectedSubject] = useState('');
   const [showTakeAttendance, setShowTakeAttendance] = useState(false);
+  const [showSessionAttendance, setShowSessionAttendance] = useState(false);
   const [showIATManager, setShowIATManager] = useState(false);
   const [attendanceDate, setAttendanceDate] = useState<Date>();
   const [selectedDepartment, setSelectedDepartment] = useState<Department>('CSE');
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [attendanceData, setAttendanceData] = useState<{[key: string]: AttendanceStatus}>({});
   const [iATRecords, setIATRecords] = useState(mockIATRecords);
+  const [sessions] = useState<Session[]>([]);
   
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
   const iats = ['IAT 1', 'IAT 2', 'IAT 3'];
   const departments: Department[] = ['CSE', 'ECE', 'MECH', 'IT', 'CIVIL'];
   
-  const getDepartmentStudents = () => {
-    return mockStudents.filter(student => student.department === selectedDepartment);
+  const getDepartmentStudents = (subjectId?: string) => {
+    return mockStudents.filter(student => 
+      student.department === selectedDepartment && 
+      (!subjectId || student.enrolledSubjects.includes(subjectId))
+    );
+  };
+
+  const getDepartmentSubjects = () => {
+    return mockSubjects.filter(subject => subject.department === selectedDepartment);
+  };
+
+  const getSubjectSessions = (subjectId: string) => {
+    return sessions.filter(session => session.subjectId === subjectId);
   };
 
   const handleTakeAttendance = () => {
@@ -77,11 +92,17 @@ export const AttendanceModule = () => {
   };
 
   const getMonthlyData = () => {
-    return mockMonthlyAttendance.filter(record => record.month === selectedMonth);
+    return mockMonthlyAttendance.filter(record => 
+      record.month === selectedMonth && 
+      (!selectedSubject || record.subjectId === selectedSubject)
+    );
   };
   
   const getIATData = () => {
-    return mockIATAttendance.filter(record => record.iatType === selectedIAT);
+    return mockIATAttendance.filter(record => 
+      record.iatType === selectedIAT && 
+      (!selectedSubject || record.subjectId === selectedSubject)
+    );
   };
   
   const getStatusIcon = (status: string, percentage?: number) => {
@@ -102,7 +123,8 @@ export const AttendanceModule = () => {
 
   const AttendanceCard = ({ record }: { record: AttendanceRecord }) => {
     const student = mockStudents.find(s => s.id === record.studentId);
-    if (!student) return null;
+    const subject = mockSubjects.find(s => s.id === record.subjectId);
+    if (!student || !subject) return null;
 
     return (
       <Card key={record.id} className="android-card">
@@ -116,7 +138,7 @@ export const AttendanceModule = () => {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">{student.name}</h3>
-                <p className="text-sm text-muted-foreground">{student.id} • {student.department}</p>
+                <p className="text-sm text-muted-foreground">{student.id} • {subject.name}</p>
               </div>
             </div>
             
@@ -146,16 +168,16 @@ export const AttendanceModule = () => {
             <h2 className="text-lg font-semibold">Quick Actions</h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Dialog open={showTakeAttendance} onOpenChange={setShowTakeAttendance}>
+            <Dialog open={showSessionAttendance} onOpenChange={setShowSessionAttendance}>
               <DialogTrigger asChild>
                 <Button className="flex flex-col items-center space-y-2 h-16">
                   <Users className="h-5 w-5" />
-                  <span className="text-sm">Take Attendance</span>
+                  <span className="text-sm">Session Attendance</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Take Attendance</DialogTitle>
+                  <DialogTitle>Session Attendance</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <Select value={selectedDepartment} onValueChange={(value) => setSelectedDepartment(value as Department)}>
@@ -171,54 +193,74 @@ export const AttendanceModule = () => {
                     </SelectContent>
                   </Select>
 
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {attendanceDate ? format(attendanceDate, "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={attendanceDate}
-                        onSelect={setAttendanceDate}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getDepartmentSubjects().map((subject) => (
+                        <SelectItem key={subject.id} value={subject.id}>
+                          {subject.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    <h3 className="font-medium">Students ({selectedDepartment})</h3>
-                    {getDepartmentStudents().map((student) => (
-                      <div key={student.id} className="flex items-center justify-between p-2 border rounded">
-                        <div>
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.id}</p>
+                  <Select 
+                    value={selectedSession?.id || ''} 
+                    onValueChange={(value) => {
+                      const session = sessions.find(s => s.id === value);
+                      setSelectedSession(session || null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Session" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getSubjectSessions(selectedSubject).map((session) => (
+                        <SelectItem key={session.id} value={session.id}>
+                          {session.name} - Period {session.period}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {selectedSubject && (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      <h3 className="font-medium">Students ({selectedDepartment})</h3>
+                      {getDepartmentStudents(selectedSubject).map((student) => (
+                        <div key={student.id} className="flex items-center justify-between p-2 border rounded">
+                          <div>
+                            <p className="font-medium text-sm">{student.name}</p>
+                            <p className="text-xs text-muted-foreground">{student.id}</p>
+                          </div>
+                          <div className="flex space-x-1">
+                            {(['Present', 'Absent', 'On Duty'] as AttendanceStatus[]).map((status) => (
+                              <Button
+                                key={status}
+                                size="sm"
+                                variant={attendanceData[student.id] === status ? "default" : "outline"}
+                                onClick={() => handleAttendanceChange(student.id, status)}
+                                className="text-xs px-2 py-1"
+                              >
+                                {status === 'On Duty' ? 'OD' : status}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
-                        <div className="flex space-x-1">
-                          {(['Present', 'Absent', 'On Duty'] as AttendanceStatus[]).map((status) => (
-                            <Button
-                              key={status}
-                              size="sm"
-                              variant={attendanceData[student.id] === status ? "default" : "outline"}
-                              onClick={() => handleAttendanceChange(student.id, status)}
-                              className="text-xs px-2 py-1"
-                            >
-                              {status === 'On Duty' ? 'OD' : status}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex space-x-2">
-                    <Button onClick={handleTakeAttendance} className="flex-1">
+                    <Button 
+                      onClick={handleTakeAttendance} 
+                      className="flex-1"
+                      disabled={!selectedSubject || !selectedSession}
+                    >
                       Submit Attendance
                     </Button>
-                    <Button variant="outline" onClick={() => setShowTakeAttendance(false)} className="flex-1">
+                    <Button variant="outline" onClick={() => setShowSessionAttendance(false)} className="flex-1">
                       Cancel
                     </Button>
                   </div>
@@ -282,6 +324,20 @@ export const AttendanceModule = () => {
             
             <TabsContent value="monthly" className="px-4 pb-4">
               <div className="space-y-4">
+                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Subject (Optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Subjects</SelectItem>
+                    {getDepartmentSubjects().map((subject) => (
+                      <SelectItem key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <div className="flex flex-wrap gap-2">
                   {months.map((month) => (
                     <Button
@@ -311,6 +367,20 @@ export const AttendanceModule = () => {
             
             <TabsContent value="iat" className="px-4 pb-4">
               <div className="space-y-4">
+                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Subject (Optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Subjects</SelectItem>
+                    {getDepartmentSubjects().map((subject) => (
+                      <SelectItem key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <div className="flex flex-wrap gap-2">
                   {iats.map((iat) => (
                     <Button

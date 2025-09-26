@@ -4,6 +4,7 @@ export interface Student {
   department: Department;
   year: Year;
   section: Section;
+  enrolledSubjects: string[]; // Subject IDs the student is enrolled in
 }
 
 export interface Subject {
@@ -25,6 +26,7 @@ export interface AttendanceRecord {
   id: string;
   studentId: string;
   sessionId?: string;
+  subjectId: string; // Required for subject-wise tracking
   date: Date;
   status: AttendanceStatus;
   month?: string;
